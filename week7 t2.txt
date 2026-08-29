@@ -1,0 +1,458 @@
+class ParkingSystem {
+
+    int[] count;
+    public ParkingSystem(int big, int medium, int small) {
+        count = new int[]{big, medium, small};
+    }
+
+    public boolean addCar(int carType) {
+        return count[carType - 1]-- > 0;
+    }
+}class Passenger {
+    int checkinTime;
+    int checkoutTime;
+    String checkinLocation;
+    String checkoutLocation;
+
+    public Passenger(String checkinLocation, int checkinTime) {
+        this.checkinLocation = checkinLocation;
+        this.checkinTime = checkinTime;
+    }
+
+    void checkout(String checkoutLocation, int checkoutTime) {
+        this.checkoutLocation = checkoutLocation;
+        this.checkoutTime = checkoutTime;
+    }
+
+}
+
+class Route {
+    String startStation;
+    String endStation;
+    int totalNumberOfTrips;
+    long totalTimeSpentInTrips;
+
+    public Route(String startStation, String endStation) {
+        this.startStation = startStation;
+        this.endStation = endStation;
+    }
+
+    double getAverageTime() {
+        return (double) totalTimeSpentInTrips / totalNumberOfTrips;
+    }
+
+    void addTrip(int startTime, int endTime) {
+        totalTimeSpentInTrips += endTime - startTime;
+        totalNumberOfTrips++;
+    }
+}
+
+class UndergroundSystem {
+
+    Map<Integer, Passenger> currentPassengerMap;
+    Map<String, Route> routeMap;
+
+    public UndergroundSystem() {
+        currentPassengerMap = new HashMap<>();
+        routeMap = new HashMap<>();
+    }
+
+    public void checkIn(int id, String stationName, int t) {
+        if (!currentPassengerMap.containsKey(id)) {
+            Passenger passenger = new Passenger(stationName, t);
+            currentPassengerMap.put(id, passenger);
+        }
+    }
+
+    public void checkOut(int id, String stationName, int t) {
+        if (currentPassengerMap.containsKey(id)) {
+            Passenger passenger = currentPassengerMap.get(id);
+            passenger.checkout(stationName, t);
+            String routeKey = passenger.checkinLocation + "," + passenger.checkoutLocation;
+            Route route = routeMap.getOrDefault(routeKey, new Route(passenger.checkinLocation, passenger.checkoutLocation));
+            route.addTrip(passenger.checkinTime, passenger.checkoutTime);
+            routeMap.put(routeKey, route);
+            currentPassengerMap.remove(id);
+        }
+    }
+
+    public double getAverageTime(String startStation, String endStation) {
+        return routeMap.get(startStation + "," + endStation).getAverageTime();
+    }
+}
+
+
+class BrowserHistory {
+
+    class Node{
+        private String url;
+        private Node prev, next;
+        public Node(String url){
+            this.url = url;
+        }
+    }
+    
+    private Node cur;
+    public BrowserHistory(String homepage) {
+        cur = new Node(homepage);
+    }
+    
+    public void visit(String url) {
+        cur.next = new Node(url);
+        cur.next.prev = cur;
+        cur = cur.next;
+    }
+    
+    public String back(int steps) {
+        while (steps-- > 0){
+            if (cur.prev != null){
+                cur = cur.prev;
+            } else {
+                break;
+            }
+        }
+        return cur.url;
+    }
+    
+    public String forward(int steps) {
+        while (steps-- > 0){
+            if (cur.next != null){
+                cur = cur.next;
+            } else {
+                break;
+            }
+                
+        }
+        return cur.url;
+    }
+}import java.io.*;
+import java.util.*;
+import java.util.stream.*;
+
+class Result {
+
+    public static List<Integer> gradingStudents(List<Integer> grades) {
+        List<Integer> result = new ArrayList<>();
+
+        for (int grade : grades) {
+            if (grade < 38) {
+                result.add(grade);
+            } else {
+                int nextMultiple = ((grade / 5) + 1) * 5;
+
+                if (nextMultiple - grade < 3) {
+                    result.add(nextMultiple);
+                } else {
+                    result.add(grade);
+                }
+            }
+        }
+
+        return result;
+    }
+}
+
+public class Solution {
+    public static void main(String[] args) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(System.getenv("OUTPUT_PATH")));
+
+        int gradesCount = Integer.parseInt(bufferedReader.readLine().trim());
+
+        List<Integer> grades = IntStream.range(0, gradesCount)
+                .mapToObj(i -> {
+                    try {
+                        return Integer.parseInt(bufferedReader.readLine().trim());
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                })
+                .collect(Collectors.toList());
+
+        List<Integer> result = Result.gradingStudents(grades);
+
+        bufferedWriter.write(
+            result.stream()
+                .map(Object::toString)
+                .collect(Collectors.joining("\n"))
+        );
+
+        bufferedWriter.newLine();
+
+        bufferedReader.close();
+        bufferedWriter.close();
+    }
+}
+class MyHashSet {
+    private static class ListNode {
+        int key;
+        ListNode next;
+        ListNode(int key) {
+            this.key = key;
+            this.next = null;
+        }
+    }
+    
+    private ListNode[] buckets;
+    private int capacity;
+    
+    public MyHashSet() {
+        capacity = 10000;
+        buckets = new ListNode[capacity];
+        for (int i = 0; i < capacity; i++) {
+            buckets[i] = new ListNode(0);
+        }
+    }
+    
+    private int hash(int key) {
+        return key % capacity;
+    }
+    
+    public void add(int key) {
+        int idx = hash(key);
+        ListNode curr = buckets[idx];
+        while (curr.next != null) {
+            if (curr.next.key == key) return;
+            curr = curr.next;
+        }
+        curr.next = new ListNode(key);
+    }
+    
+    public void remove(int key) {
+        int idx = hash(key);
+        ListNode curr = buckets[idx];
+        while (curr.next != null) {
+            if (curr.next.key == key) {
+                curr.next = curr.next.next;
+                return;
+            }
+            curr = curr.next;
+        }
+    }
+    
+    public boolean contains(int key) {
+        int idx = hash(key);
+        ListNode curr = buckets[idx];
+        while (curr.next != null) {
+            if (curr.next.key == key) return true;
+            curr = curr.next;
+        }
+        return false;
+    }
+}class Animal {
+    void walk() {
+        System.out.println("I am walking");
+    }
+}
+
+class Bird extends Animal {
+    void fly() {
+        System.out.println("I am flying");
+    }
+
+    void sing() {
+        System.out.println("I am singing");
+    }
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Bird bird = new Bird();
+
+        bird.walk();
+        bird.fly();
+        bird.sing();
+    }
+}
+import java.io.*;
+import java.util.*;
+
+// Superclass Arithmetic with the add method
+class Arithmetic {
+    public int add(int a, int b) {
+        return a + b;
+    }
+}
+
+// Subclass Adder that inherits from Arithmetic
+class Adder extends Arithmetic {
+}
+
+public class Solution {
+    public static void main(String []args) {
+        // Create a new Adder object
+        Adder a = new Adder();
+        
+        // Print the name of the superclass
+        System.out.println("My superclass is: " + a.getClass().getSuperclass().getName());	
+        
+        // Print the result of testing the add method
+        System.out.print(a.add(10,32) + " " + a.add(10,3) + " " + a.add(10,10) + "\n");
+     }
+}import java.lang.reflect.Method;
+
+class Printer {
+    // Generic method to print array elements of any type
+    public <T> void printArray(T[] array) {
+        for (T element : array) {
+            System.out.println(element);
+        }
+    }
+}
+
+public class Solution {
+
+    public static void main(String[] args) {
+        Printer myPrinter = new Printer();
+        Integer[] intArray = { 1, 2, 3 };
+        String[] stringArray = { "Hello", "World" };
+
+        myPrinter.printArray(intArray);
+        myPrinter.printArray(stringArray);
+
+        int count = 0;
+        for (Method method : Printer.class.getDeclaredMethods()) {
+            if (method.getName().equals("printArray")) {
+                count++;
+            }
+        }
+
+        if (count > 1) {
+            System.out.println("Method overloading is not allowed!");
+        }
+    }
+}import java.lang.reflect.Method;
+
+class Printer {
+    // Generic method to print array elements of any type
+    public <T> void printArray(T[] array) {
+        for (T element : array) {
+            System.out.println(element);
+        }
+    }
+}
+
+public class Solution {
+
+    public static void main(String[] args) {
+        Printer myPrinter = new Printer();
+        Integer[] intArray = { 1, 2, 3 };
+        String[] stringArray = { "Hello", "World" };
+
+        myPrinter.printArray(intArray);
+        myPrinter.printArray(stringArray);
+
+        int count = 0;
+        for (Method method : Printer.class.getDeclaredMethods()) {
+            if (method.getName().equals("printArray")) {
+                count++;
+            }
+        }
+
+        if (count > 1) {
+            System.out.println("Method overloading is not allowed!");
+        }
+    }
+}import java.lang.reflect.Method;
+
+class Printer {
+    // Generic method to print array elements of any type
+    public <T> void printArray(T[] array) {
+        for (T element : array) {
+            System.out.println(element);
+        }
+    }
+}
+
+public class Solution {
+
+    public static void main(String[] args) {
+        Printer myPrinter = new Printer();
+        Integer[] intArray = { 1, 2, 3 };
+        String[] stringArray = { "Hello", "World" };
+
+        myPrinter.printArray(intArray);
+        myPrinter.printArray(stringArray);
+
+        int count = 0;
+        for (Method method : Printer.class.getDeclaredMethods()) {
+            if (method.getName().equals("printArray")) {
+                count++;
+            }
+        }
+
+        if (count > 1) {
+            System.out.println("Method overloading is not allowed!");
+        }
+    }
+}class ThroneInheritance {
+    String kingName;
+    Map<String, List<String>> map = new HashMap<>();  // for cache children;
+    Map<String, Boolean> alive = new HashMap<>();
+    public ThroneInheritance(String kingName) {
+        this.kingName = kingName;
+    }
+    
+    public void birth(String pn, String cn) {
+        map.computeIfAbsent(pn, k -> new ArrayList<>());
+        map.get(pn).add(cn);
+    }
+    
+    public void death(String name) {
+        alive.put(name, false);
+    }
+    
+    public List<String> getInheritanceOrder() {
+        List<String> list = getList(kingName);  //all list with alive and died
+        List<String> res = new ArrayList<>();
+        for (String s : list)
+            if (alive.getOrDefault(s, true)) res.add(s);  // remove died
+        return res;
+    }
+    
+    private List<String> getList(String p) {   // recursion to get children and build the inheritance list;
+        List<String> res = new ArrayList<>();
+        res.add(p);
+        List<String> cs = map.getOrDefault(p, new ArrayList<>());
+        for (String c : cs) {
+            List<String> tmp = getList(c);
+            for (String cc : tmp) res.add(cc);
+        }
+        return res;
+    }
+}import java.util.*;
+
+class Student{}
+class Rockstar{}
+class Hacker{}
+
+public class InstanceOFTutorial {
+
+    static String count(ArrayList mylist){
+        int a = 0, b = 0, c = 0;
+        for(int i = 0; i < mylist.size(); i++){
+            Object element = mylist.get(i);
+            if(element instanceof Student)
+                a++;
+            if(element instanceof Rockstar)
+                b++;
+            if(element instanceof Hacker)
+                c++;
+        }
+        String ret = Integer.toString(a) + " " + Integer.toString(b) + " " + Integer.toString(c);
+        return ret;
+    }
+
+    public static void main(String []args){
+        ArrayList mylist = new ArrayList();
+        Scanner sc = new Scanner(System.in);
+        int t = sc.nextInt();
+        for(int i = 0; i < t; i++){
+            String s = sc.next();
+            if(s.equals("Student")) mylist.add(new Student());
+            if(s.equals("Rockstar")) mylist.add(new Rockstar());
+            if(s.equals("Hacker")) mylist.add(new Hacker());
+        }
+        System.out.println(count(mylist));
+    }
+}

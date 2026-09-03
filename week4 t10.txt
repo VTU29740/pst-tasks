@@ -1,0 +1,702 @@
+import java.util.*;
+
+class Sports {
+    String getName() {
+        return "Generic Sports";
+    }
+
+    void getNumberOfTeamMembers() {
+        System.out.println("Each team has n players in " + getName());
+    }
+}
+
+class Soccer extends Sports {
+    @Override
+    String getName() {
+        return "Soccer Class";
+    }
+
+    @Override
+    void getNumberOfTeamMembers() {
+        System.out.println("Each team has 11 players in " + getName());
+    }
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Sports sports = new Sports();
+        Soccer soccer = new Soccer();
+
+        System.out.println(sports.getName());
+        sports.getNumberOfTeamMembers();
+
+        System.out.println(soccer.getName());
+        soccer.getNumberOfTeamMembers();
+    }
+}class Cycle {
+    String define_me() {
+        return "a vehicle with pedals.";
+    }
+}
+
+class Motorcycle extends Cycle {
+    String define_me() {
+        return "a cycle with an engine.";
+    }
+
+    Motorcycle() {
+        System.out.println("Hello I am a motorcycle, I am " + define_me());
+
+        String temp = super.define_me();
+
+        System.out.println("My ancestor is a cycle who is " + temp);
+    }
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Motorcycle M = new Motorcycle();
+    }
+}import java.util.*;
+
+class Singleton {
+    private static Singleton instance = null;
+
+    public String str;
+
+    private Singleton() {
+    }
+
+    public static Singleton getSingleInstance() {
+        if (instance == null) {
+            instance = new Singleton();
+        }
+        return instance;
+    }
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        String input = sc.nextLine();
+
+        Singleton single = Singleton.getSingleInstance();
+        single.str = input;
+
+        System.out.println("Hello I am a singleton! Let me say " + single.str + " to you");
+    }
+}import java.util.*;
+
+enum Color {
+    RED, GREEN
+}
+
+abstract class Tree {
+    private int value;
+    private Color color;
+    private int depth;
+
+    Tree(int value, Color color, int depth) {
+        this.value = value;
+        this.color = color;
+        this.depth = depth;
+    }
+
+    public int getValue() {
+        return value;
+    }
+
+    public Color getColor() {
+        return color;
+    }
+
+    public int getDepth() {
+        return depth;
+    }
+
+    public abstract void accept(TreeVis visitor);
+}
+
+class TreeNode extends Tree {
+    private ArrayList<Tree> children = new ArrayList<>();
+
+    TreeNode(int value, Color color, int depth) {
+        super(value, color, depth);
+    }
+
+    public void accept(TreeVis visitor) {
+        visitor.visitNode(this);
+
+        for (Tree child : children) {
+            child.accept(visitor);
+        }
+    }
+
+    public void addChild(Tree child) {
+        children.add(child);
+    }
+}
+
+class TreeLeaf extends Tree {
+    TreeLeaf(int value, Color color, int depth) {
+        super(value, color, depth);
+    }
+
+    public void accept(TreeVis visitor) {
+        visitor.visitLeaf(this);
+    }
+}
+
+abstract class TreeVis {
+    public abstract int getResult();
+    public abstract void visitNode(TreeNode node);
+    public abstract void visitLeaf(TreeLeaf leaf);
+}
+
+class SumInLeavesVisitor extends TreeVis {
+    private int sum = 0;
+
+    public int getResult() {
+        return sum;
+    }
+
+    public void visitNode(TreeNode node) {
+        // Nothing required
+    }
+
+    public void visitLeaf(TreeLeaf leaf) {
+        sum += leaf.getValue();
+    }
+}
+
+class ProductOfRedNodesVisitor extends TreeVis {
+    private static final long MOD = 1000000007L;
+    private long product = 1;
+
+    public int getResult() {
+        return (int) product;
+    }
+
+    public void visitNode(TreeNode node) {
+        if (node.getColor() == Color.RED) {
+            product = (product * node.getValue()) % MOD;
+        }
+    }
+
+    public void visitLeaf(TreeLeaf leaf) {
+        if (leaf.getColor() == Color.RED) {
+            product = (product * leaf.getValue()) % MOD;
+        }
+    }
+}
+
+class FancyVisitor extends TreeVis {
+    private int evenDepthSum = 0;
+    private int greenLeafSum = 0;
+
+    public int getResult() {
+        return Math.abs(evenDepthSum - greenLeafSum);
+    }
+
+    public void visitNode(TreeNode node) {
+        if (node.getDepth() % 2 == 0) {
+            evenDepthSum += node.getValue();
+        }
+    }
+
+    public void visitLeaf(TreeLeaf leaf) {
+        if (leaf.getColor() == Color.GREEN) {
+            greenLeafSum += leaf.getValue();
+        }
+    }
+}
+
+public class Solution {
+    public static Tree solve() {
+        Scanner sc = new Scanner(System.in);
+
+        int n = sc.nextInt();
+
+        int[] values = new int[n];
+        for (int i = 0; i < n; i++) {
+            values[i] = sc.nextInt();
+        }
+
+        Color[] colors = new Color[n];
+        for (int i = 0; i < n; i++) {
+            colors[i] = sc.nextInt() == 0 ? Color.RED : Color.GREEN;
+        }
+
+        ArrayList<Integer>[] children = new ArrayList[n];
+
+        for (int i = 0; i < n; i++) {
+            children[i] = new ArrayList<>();
+        }
+
+        for (int i = 0; i < n - 1; i++) {
+            int u = sc.nextInt() - 1;
+            int v = sc.nextInt() - 1;
+
+            children[u].add(v);
+            children[v].add(u);
+        }
+
+        return buildTree(0, -1, 0, values, colors, children);
+    }
+
+    private static Tree buildTree(
+            int current,
+            int parent,
+            int depth,
+            int[] values,
+            Color[] colors,
+            ArrayList<Integer>[] children) {
+
+        if (children[current].size() == 1 && current != 0) {
+            return new TreeLeaf(values[current], colors[current], depth);
+        }
+
+        TreeNode node = new TreeNode(values[current], colors[current], depth);
+
+        for (int child : children[current]) {
+            if (child != parent) {
+                node.addChild(
+                    buildTree(child, current, depth + 1,
+                              values, colors, children)
+                );
+            }
+        }
+
+        return node;
+    }
+
+    public static void main(String[] args) {
+        Tree root = solve();
+
+        SumInLeavesVisitor vis1 = new SumInLeavesVisitor();
+        ProductOfRedNodesVisitor vis2 = new ProductOfRedNodesVisitor();
+        FancyVisitor vis3 = new FancyVisitor();
+
+        root.accept(vis1);
+        root.accept(vis2);
+        root.accept(vis3);
+
+        System.out.println(vis1.getResult());
+        System.out.println(vis2.getResult());
+        System.out.println(vis3.getResult());
+    }
+}import java.util.*;
+
+public class Main {
+
+    static Iterator func(ArrayList mylist) {
+        Iterator it = mylist.iterator();
+        while (it.hasNext()) {
+            Object element = it.next();
+            if (element instanceof String && element.equals("###")) // Edit 1: find the special string
+                break; // Edit 2: stop when "###" is reached so the iterator points to the rest
+        }
+        return it;
+    }
+
+    @SuppressWarnings({ "unchecked" })
+    public static void main(String[] args) {
+        ArrayList mylist = new ArrayList();
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt();
+        int m = sc.nextInt();
+        for (int i = 0; i < n; i++) {
+            mylist.add(sc.nextInt());
+        }
+
+        mylist.add("###");
+        for (int i = 0; i < m; i++) {
+            mylist.add(sc.next());
+        }
+
+        Iterator it = func(mylist);
+        while (it.hasNext()) {
+            Object element = it.next();
+            System.out.println((String) element);
+        }
+    }
+}import java.util.*;
+
+interface AdvancedArithmetic {
+    int divisor_sum(int n);
+}
+
+// Write your MyCalculator class here
+class MyCalculator implements AdvancedArithmetic {
+    public int divisor_sum(int n) {
+        int sum = 0;
+        for (int i = 1; i <= n; i++) {
+            if (n % i == 0) {
+                sum += i;
+            }
+        }
+        return sum;
+    }
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        MyCalculator my_calculator = new MyCalculator();
+        System.out.print("I implemented: ");
+        ImplementedInterfaceNames(my_calculator);
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt();
+        System.out.print(my_calculator.divisor_sum(n) + "\n");
+        sc.close();
+    }
+
+    /*
+     *  ImplementedInterfaceNames method takes an object and prints the name of the interfaces it implemented
+     */
+    static void ImplementedInterfaceNames(Object o) {
+        Class[] theInterfaces = o.getClass().getInterfaces();
+        for (int i = 0; i < theInterfaces.length; i++) {
+            String interfaceName = theInterfaces[i].getName();
+            System.out.println(interfaceName);
+        }
+    }
+}import java.io.*;
+import java.util.*;
+
+public class Solution {
+
+    public static void main(String[] args) {
+        Scanner s = new Scanner(System.in);
+        int t = s.nextInt();
+        String [] pair_left = new String[t];
+        String [] pair_right = new String[t];
+        
+        for (int i = 0; i < t; i++) {
+            pair_left[i] = s.next();
+            pair_right[i] = s.next();
+        }
+
+        // Complete the code below
+        HashSet<String> uniquePairs = new HashSet<String>(t);
+        
+        for (int i = 0; i < t; i++) {
+            uniquePairs.add(pair_left[i] + " " + pair_right[i]);
+            System.out.println(uniquePairs.size());
+        }
+        
+        s.close();
+    }
+}import java.io.*;
+import java.util.*;
+
+public class Solution {
+
+    public static void main(String[] args) {
+        Scanner s = new Scanner(System.in);
+        int t = s.nextInt();
+        String [] pair_left = new String[t];
+        String [] pair_right = new String[t];
+        
+        for (int i = 0; i < t; i++) {
+            pair_left[i] = s.next();
+            pair_right[i] = s.next();
+        }
+
+        // Complete the code below
+        HashSet<String> uniquePairs = new HashSet<String>(t);
+        
+        for (int i = 0; i < t; i++) {
+            uniquePairs.add(pair_left[i] + " " + pair_right[i]);
+            System.out.println(uniquePairs.size());
+        }
+        
+        s.close();
+    }
+}import java.io.*;
+import java.util.*;
+
+public class Solution {
+
+    public static void main(String[] args) {
+        Scanner s = new Scanner(System.in);
+        int t = s.nextInt();
+        String [] pair_left = new String[t];
+        String [] pair_right = new String[t];
+        
+        for (int i = 0; i < t; i++) {
+            pair_left[i] = s.next();
+            pair_right[i] = s.next();
+        }
+
+        // Complete the code below
+        HashSet<String> uniquePairs = new HashSet<String>(t);
+        
+        for (int i = 0; i < t; i++) {
+            uniquePairs.add(pair_left[i] + " " + pair_right[i]);
+            System.out.println(uniquePairs.size());
+        }
+        
+        s.close();
+    }
+}import java.io.*;
+import java.util.*;
+
+public class Solution {
+
+    public static void main(String[] args) {
+        Scanner s = new Scanner(System.in);
+        int t = s.nextInt();
+        String [] pair_left = new String[t];
+        String [] pair_right = new String[t];
+        
+        for (int i = 0; i < t; i++) {
+            pair_left[i] = s.next();
+            pair_right[i] = s.next();
+        }
+
+        // Complete the code below
+        HashSet<String> uniquePairs = new HashSet<String>(t);
+        
+        for (int i = 0; i < t; i++) {
+            uniquePairs.add(pair_left[i] + " " + pair_right[i]);
+            System.out.println(uniquePairs.size());
+        }
+        
+        s.close();
+    }
+}import java.io.*;
+import java.util.*;
+
+public class Solution {
+
+    public static void main(String[] args) {
+        Scanner s = new Scanner(System.in);
+        int t = s.nextInt();
+        String [] pair_left = new String[t];
+        String [] pair_right = new String[t];
+        
+        for (int i = 0; i < t; i++) {
+            pair_left[i] = s.next();
+            pair_right[i] = s.next();
+        }
+
+        // Complete the code below
+        HashSet<String> uniquePairs = new HashSet<String>(t);
+        
+        for (int i = 0; i < t; i++) {
+            uniquePairs.add(pair_left[i] + " " + pair_right[i]);
+            System.out.println(uniquePairs.size());
+        }
+        
+        s.close();
+    }
+}import java.io.*;
+import java.util.*;
+
+public class Solution {
+
+    public static void main(String[] args) {
+        Scanner s = new Scanner(System.in);
+        int t = s.nextInt();
+        String [] pair_left = new String[t];
+        String [] pair_right = new String[t];
+        
+        for (int i = 0; i < t; i++) {
+            pair_left[i] = s.next();
+            pair_right[i] = s.next();
+        }
+
+        // Complete the code below
+        HashSet<String> uniquePairs = new HashSet<String>(t);
+        
+        for (int i = 0; i < t; i++) {
+            uniquePairs.add(pair_left[i] + " " + pair_right[i]);
+            System.out.println(uniquePairs.size());
+        }
+        
+        s.close();
+    }
+}import java.util.*;
+import java.security.*;
+
+interface Food {
+    public String getType();
+}
+
+class Pizza implements Food {
+    public String getType() {
+        return "Someone ordered Fast Food!";
+    }
+}
+
+class Cake implements Food {
+    public String getType() {
+        return "Someone ordered a Dessert!";
+    }
+}
+
+class FoodFactory {
+    public Food getFood(String order) {
+        if (order == null) {
+            return null;
+        }
+        
+        String cleanOrder = order.trim().toLowerCase();
+        
+        switch (cleanOrder) {
+            case "cake":
+                return new Cake();
+            case "pizza":
+                return new Pizza();
+            default:
+                return null;
+        }
+    }
+}
+
+public class Solution {
+
+    public static void main(String[] args) {
+        DoNotTerminate.forbidExit();
+
+        try {
+            Scanner sc = new Scanner(System.in);
+            // Factory instantiation
+            FoodFactory foodFactory = new FoodFactory();
+
+            Food food = foodFactory.getFood(sc.nextLine());
+
+            System.out.println("The factory returned " + food.getClass());
+            System.out.println(food.getType());
+        } catch (DoNotTerminate.ExitTrappedException e) {
+            System.out.println("Unsuccessful Termination!!");
+        }
+    }
+}
+
+class DoNotTerminate {
+
+    public static class ExitTrappedException extends SecurityException {
+        private static final long serialVersionUID = 1L;
+    }
+
+    public static void forbidExit() {
+        final SecurityManager securityManager = new SecurityManager() {
+            @Override
+            public void checkPermission(Permission permission) {
+                if (permission.getName().contains("exitVM")) {
+                    throw new ExitTrappedException();
+                }
+            }
+        };
+        System.setSecurityManager(securityManager);
+    }
+}import java.util.Scanner;
+
+class MyCalculator {
+    public long power(int n, int p) throws Exception {
+        if (n < 0 || p < 0) {
+            throw new Exception("n or p should not be negative.");
+        } else if (n == 0 && p == 0) {
+            throw new Exception("n and p should not be zero.");
+        } else {
+            return (long) Math.pow(n, p);
+        }
+    }
+}
+
+public class Solution {
+    public static final MyCalculator my_calculator = new MyCalculator();
+    public static final Scanner in = new Scanner(System.in);
+    
+    public static void main(String[] args) {
+        while (in.hasNextInt()) {
+            int n = in.nextInt();
+            int p = in.nextInt();
+            
+            try {
+                System.out.println(my_calculator.power(n, p));
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+        }
+    }
+}import java.util.Scanner;
+
+class MyCalculator {
+    public long power(int n, int p) throws Exception {
+        if (n < 0 || p < 0) {
+            throw new Exception("n or p should not be negative.");
+        }
+        if (n == 0 && p == 0) {
+            throw new Exception("n and p should not be zero.");
+        }
+        return (long) Math.pow(n, p);
+    }
+}
+
+public class Solution {
+    public static final MyCalculator my_calculator = new MyCalculator();
+    public static final Scanner in = new Scanner(System.in);
+    
+    public static void main(String[] args) {
+        while (in.hasNextInt()) {
+            int n = in.nextInt();
+            int p = in.nextInt();
+            
+            try {
+                System.out.println(my_calculator.power(n, p));
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+        }
+    }
+}import java.util.ArrayList;
+
+public class GFG {
+
+    // Function to search for all occurrences of 'pat' in 'txt' using Naive Approach
+    static ArrayList<Integer> search(String pat, String txt)
+    {
+        // Length of the pattern
+        int m = pat.length();
+
+        // Length of the text
+        int n = txt.length();
+
+        ArrayList<Integer> ans = new ArrayList<>();
+
+        // Slide the pattern over text one by one
+        for (int i = 0; i <= n - m; i++)
+        {
+            int j;
+
+            // Check for pattern match at index i
+            for (j = 0; j < m; j++)
+            {
+                if (txt.charAt(i + j) != pat.charAt(j))
+                    break;
+            }
+
+            // If pattern matches, store index
+            if (j == m)
+                ans.add(i);
+        }
+
+        return ans;
+    }
+
+    public static void main(String[] args)
+    {
+        String txt = "aabaacaadaabaaba";
+        String pat = "aaba";
+
+        ArrayList<Integer> res = search(pat, txt);
+
+        for (int it : res)
+        {
+            System.out.print(it + " ");
+        }
+    }
+}

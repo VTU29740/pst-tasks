@@ -1,0 +1,89 @@
+import java.util.*;
+
+class Sports {
+    String getName() {
+        return "Generic Sports";
+    }
+
+    void getNumberOfTeamMembers() {
+        System.out.println("Each team has n players in " + getName());
+    }
+}
+
+class Soccer extends Sports {
+    @Override
+    String getName() {
+        return "Soccer Class";
+    }
+
+    @Override
+    void getNumberOfTeamMembers() {
+        System.out.println("Each team has 11 players in " + getName());
+    }
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Sports sports = new Sports();
+        Soccer soccer = new Soccer();
+
+        System.out.println(sports.getName());
+        sports.getNumberOfTeamMembers();
+
+        System.out.println(soccer.getName());
+        soccer.getNumberOfTeamMembers();
+    }
+}class Cycle {
+    String define_me() {
+        return "a vehicle with pedals.";
+    }
+}
+
+class Motorcycle extends Cycle {
+    String define_me() {
+        return "a cycle with an engine.";
+    }
+
+    Motorcycle() {
+        System.out.println("Hello I am a motorcycle, I am " + define_me());
+
+        String temp = super.define_me();
+
+        System.out.println("My ancestor is a cycle who is " + temp);
+    }
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Motorcycle M = new Motorcycle();
+    }
+}import java.util.*;
+
+class Singleton {
+    private static Singleton instance = null;
+
+    public String str;
+
+    private Singleton() {
+    }
+
+    public static Singleton getSingleInstance() {
+        if (instance == null) {
+            instance = new Singleton();
+        }
+        return instance;
+    }
+}
+
+public class Solution {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        String input = sc.nextLine();
+
+        Singleton single = Singleton.getSingleInstance();
+        single.str = input;
+
+        System.out.println("Hello I am a singleton! Let me say " + single.str + " to you");
+    }
+}

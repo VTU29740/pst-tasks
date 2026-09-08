@@ -1,0 +1,297 @@
+import java.io.*;
+import java.util.*;
+import java.util.stream.*;
+import static java.util.stream.Collectors.toList;
+
+class Result {
+
+    /*
+     * Complete the 'birthday' function below.
+     *
+     * The function is expected to return an INTEGER.
+     * The function accepts following parameters:
+     *  1. INTEGER_ARRAY s
+     *  2. INTEGER d
+     *  3. INTEGER m
+     */
+
+    public static int birthday(List<Integer> s, int d, int m) {
+        // Handle edge case where the chocolate bar has fewer squares than month m
+        if (s.size() < m) {
+            return 0;
+        }
+
+        int count = 0;
+        int currentSum = 0;
+
+        // Calculate the sum of the first window of size m
+        for (int i = 0; i < m; i++) {
+            currentSum += s.get(i);
+        }
+
+        // Check if the first window matches the target day d
+        if (currentSum == d) {
+            count++;
+        }
+
+        // Slide the window across the rest of the array
+        for (int i = m; i < s.size(); i++) {
+            // Add the new element entering the window and remove the element leaving it
+            currentSum += s.get(i) - s.get(i - m);
+
+            if (currentSum == d) {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+}
+
+public class Solution {
+    public static void main(String[] args) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(System.getenv("OUTPUT_PATH")));
+
+        int n = Integer.parseInt(bufferedReader.readLine().trim());
+
+        List<Integer> s = Stream.of(bufferedReader.readLine().replaceAll("\\s+$", "").split(" "))
+            .map(Integer::parseInt)
+            .collect(toList());
+
+        String[] firstMultipleInput = bufferedReader.readLine().replaceAll("\\s+$", "").split(" ");
+
+        int d = Integer.parseInt(firstMultipleInput[0]);
+
+        int m = Integer.parseInt(firstMultipleInput[1]);
+
+        int result = Result.birthday(s, d, m);
+
+        bufferedWriter.write(String.valueOf(result));
+        bufferedWriter.newLine();
+
+        bufferedReader.close();
+        bufferedWriter.close();
+    }
+}import java.io.*;
+import java.util.*;
+import java.util.stream.*;
+import static java.util.stream.Collectors.toList;
+
+class Result {
+
+    /*
+     * Complete the 'maxSubarray' function below.
+     *
+     * The function is expected to return an INTEGER_ARRAY.
+     * The function accepts INTEGER_ARRAY arr as parameter.
+     */
+    public static List<Integer> maxSubarray(List<Integer> arr) {
+        // 1. Calculate Maximum Subarray Sum (Kadane's Algorithm)
+        int maxSubarraySum = arr.get(0);
+        int currentSubarraySum = arr.get(0);
+
+        for (int i = 1; i < arr.size(); i++) {
+            currentSubarraySum = Math.max(arr.get(i), currentSubarraySum + arr.get(i));
+            maxSubarraySum = Math.max(maxSubarraySum, currentSubarraySum);
+        }
+
+        // 2. Calculate Maximum Subsequence Sum
+        int maxSubsequenceSum = 0;
+        int maxElement = Integer.MIN_VALUE;
+        boolean hasPositive = false;
+
+        for (int num : arr) {
+            if (num > 0) {
+                maxSubsequenceSum += num;
+                hasPositive = true;
+            }
+            maxElement = Math.max(maxElement, num);
+        }
+
+        // If all elements are negative or zero, picking the single maximum element gives the max subsequence sum
+        if (!hasPositive) {
+            maxSubsequenceSum = maxElement;
+        }
+
+        return List.of(maxSubarraySum, maxSubsequenceSum);
+    }
+}
+
+public class Solution {
+    public static void main(String[] args) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(System.getenv("OUTPUT_PATH")));
+
+        int t = Integer.parseInt(bufferedReader.readLine().trim());
+
+        IntStream.range(0, t).forEach(tItr -> {
+            try {
+                int n = Integer.parseInt(bufferedReader.readLine().trim());
+
+                List<Integer> arr = Stream.of(bufferedReader.readLine().replaceAll("\\s+$", "").split(" "))
+                    .map(Integer::parseInt)
+                    .collect(toList());
+
+                List<Integer> result = Result.maxSubarray(arr);
+
+                bufferedWriter.write(
+                    result.stream()
+                        .map(Object::toString)
+                        .collect(Collectors.joining(" "))
+                    + "\n"
+                );
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+
+        bufferedReader.close();
+        bufferedWriter.close();
+    }
+}class Solution {
+    public int maxSubarraySumCircular(int[] nums) {
+        int maxSum = nums[0];
+        int minSum = nums[0];
+        int currMaxSum = nums[0];
+        int currMinSum = nums[0];
+        int totalSum = nums[0];
+        
+        for (int i = 1; i < nums.length; i++) {
+            // Kadane's algorithm for maximum sum
+            // Either extend previous subarray or start a new one
+            currMaxSum = Math.max(currMaxSum + nums[i], nums[i]);
+            maxSum = Math.max(maxSum, currMaxSum);
+            
+            // Kadane's algorithm for minimum sum
+            // Either extend previous subarray or start a new one
+            currMinSum = Math.min(currMinSum + nums[i], nums[i]);
+            minSum = Math.min(minSum, currMinSum);
+            
+            // Calculate the total sum of all elements
+            totalSum += nums[i];
+        }
+        
+        // The circular sum is the total sum minus the minimum subarray sum
+        int circularSum = totalSum - minSum;
+        
+        // Edge case: if all numbers are negative, then maxSum will be negative
+        // and circularSum will be 0 (empty subarray), but we need to return the max negative value
+        if (circularSum == 0) {
+            return maxSum;
+        }
+        
+        // Return the maximum of the regular subarray sum and the circular subarray sum
+        return Math.max(maxSum, circularSum);
+    }
+}class Solution {
+    public int myAtoi(String s) {
+        if (s == null || s.isEmpty()) {
+            return 0;
+        }
+
+        int n = s.length();
+        int i = 0;
+
+        // Step 1: Ignore leading whitespace
+        while (i < n && s.charAt(i) == ' ') {
+            i++;
+        }
+
+        // If string contains only spaces
+        if (i == n) {
+            return 0;
+        }
+
+        // Step 2: Determine sign
+        int sign = 1;
+        if (s.charAt(i) == '+' || s.charAt(i) == '-') {
+            sign = (s.charAt(i) == '-') ? -1 : 1;
+            i++;
+        }
+
+        // Step 3 & 4: Read digits and handle 32-bit overflow
+        int result = 0;
+        while (i < n && Character.isDigit(s.charAt(i))) {
+            int digit = s.charAt(i) - '0';
+
+            // Check overflow before updating result
+            // Integer.MAX_VALUE = 2147483647
+            if (result > Integer.MAX_VALUE / 10 || 
+               (result == Integer.MAX_VALUE / 10 && digit > Integer.MAX_VALUE % 10)) {
+                return (sign == 1) ? Integer.MAX_VALUE : Integer.MIN_VALUE;
+            }
+
+            result = result * 10 + digit;
+            i++;
+        }
+
+        return result * sign;
+    }
+}import java.io.*;
+import java.util.stream.*;
+
+class Result {
+
+    /*
+     * Complete the 'alternatingCharacters' function below.
+     *
+     * The function is expected to return an INTEGER.
+     * The function accepts STRING s as parameter.
+     */
+
+    public static int alternatingCharacters(String s) {
+        int deletions = 0;
+
+        // Compare each character with the next adjacent character
+        for (int i = 0; i < s.length() - 1; i++) {
+            if (s.charAt(i) == s.charAt(i + 1)) {
+                deletions++;
+            }
+        }
+
+        return deletions;
+    }
+
+}
+
+public class Solution {
+    public static void main(String[] args) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(System.getenv("OUTPUT_PATH")));
+
+        int q = Integer.parseInt(bufferedReader.readLine().trim());
+
+        IntStream.range(0, q).forEach(qItr -> {
+            try {
+                String s = bufferedReader.readLine();
+
+                int result = Result.alternatingCharacters(s);
+
+                bufferedWriter.write(String.valueOf(result));
+                bufferedWriter.newLine();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+
+        bufferedReader.close();
+        bufferedWriter.close();
+    }
+}class Solution {
+    public List<String> findAndReplacePattern(String[] words, String pattern) {
+        List<String> res = new ArrayList<>();
+        for (String word : words) {
+            if (check(word, pattern)) res.add(word);
+        }
+        return res;
+    }
+    
+    boolean check(String a, String b) {
+        for (int i = 0; i < a.length(); i++) {
+            if (a.indexOf(a.charAt(i)) != b.indexOf(b.charAt(i))) return false;
+        }
+        return true;
+    }
+}

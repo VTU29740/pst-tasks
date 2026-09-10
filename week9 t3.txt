@@ -1,0 +1,97 @@
+import java.util.Scanner;
+
+// Base class
+class Vehicle {
+    protected String vehicleNumber;
+    protected double rentPerDay;
+
+    public Vehicle(String vehicleNumber, double rentPerDay) {
+        this.vehicleNumber = vehicleNumber;
+        this.rentPerDay = rentPerDay;
+    }
+
+    public String getVehicleNumber() {
+        return vehicleNumber;
+    }
+
+    // Method to be overridden by subclasses
+    public double calculateRent(int days) {
+        return rentPerDay * days;
+    }
+}
+
+// Subclass Car
+class Car extends Vehicle {
+    public Car(String vehicleNumber, double rentPerDay) {
+        super(vehicleNumber, rentPerDay);
+    }
+
+    @Override
+    public double calculateRent(int days) {
+        return rentPerDay * days;
+    }
+}
+
+// Subclass Bike
+class Bike extends Vehicle {
+    public Bike(String vehicleNumber, double rentPerDay) {
+        super(vehicleNumber, rentPerDay);
+    }
+
+    @Override
+    public double calculateRent(int days) {
+        return rentPerDay * days * 0.90; // 10% discount
+    }
+}
+
+// Subclass Truck
+class Truck extends Vehicle {
+    public Truck(String vehicleNumber, double rentPerDay) {
+        super(vehicleNumber, rentPerDay);
+    }
+
+    @Override
+    public double calculateRent(int days) {
+        return rentPerDay * days * 1.20; // 20% additional charge
+    }
+}
+
+// Main class
+public class Main {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        if (!scanner.hasNextInt()) return;
+        int n = scanner.nextInt();
+
+        for (int i = 0; i < n; i++) {
+            int vehicleType = scanner.nextInt();
+            String vehicleNumber = scanner.next();
+            double rentPerDay = scanner.nextDouble();
+            int days = scanner.nextInt();
+
+            Vehicle vehicle = null;
+
+            // Demonstrating runtime polymorphism via base class reference
+            switch (vehicleType) {
+                case 1:
+                    vehicle = new Car(vehicleNumber, rentPerDay);
+                    break;
+                case 2:
+                    vehicle = new Bike(vehicleNumber, rentPerDay);
+                    break;
+                case 3:
+                    vehicle = new Truck(vehicleNumber, rentPerDay);
+                    break;
+            }
+
+            if (vehicle != null) {
+                // Runtime polymorphism: dynamic method dispatch executes overridden calculateRent()
+                double totalRent = vehicle.calculateRent(days);
+                System.out.printf("%s %.2f\n", vehicle.getVehicleNumber(), totalRent);
+            }
+        }
+
+        scanner.close();
+    }
+}

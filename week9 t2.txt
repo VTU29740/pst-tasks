@@ -1,0 +1,132 @@
+import java.time.Instant;
+import java.util.*;
+import java.util.concurrent.*;
+
+// 1. Telemetry Event Model
+class SystemMetricEvent {
+    private final String serviceId;
+    private final double cpuUsagePercent;
+    private final double latencyMs;
+    private final int errorCount;
+    private final Instant timestamp;
+
+    public SystemMetricEvent(String serviceId, double cpuUsagePercent, double latencyMs, int errorCount) {
+        this.serviceId = serviceId;
+        this.cpuUsagePercent = cpuUsagePercent;
+        this.latencyMs = latencyMs;
+        this.errorCount = errorCount;
+        this.timestamp = Instant.now();
+    }
+
+    public String getServiceId() { return serviceId; }
+    public double getCpuUsagePercent() { return cpuUsagePercent; }
+    public double getLatencyMs() { return latencyMs; }
+    public int getErrorCount() { return errorCount; }
+    public Instant getTimestamp() { return timestamp; }
+}
+
+// 2. Incident & Mitigation Alert Model
+enum Severity { INFO, WARNING, CRITICAL }
+
+class AnalysisResult {
+    private final String serviceId;
+    private final Severity severity;
+    private final String issueDescription;
+    private final String recommendedAction;
+
+    public AnalysisResult(String serviceId, Severity severity, String issueDescription, String recommendedAction) {
+        this.serviceId = serviceId;
+        this.severity = severity;
+        this.issueDescription = issueDescription;
+        this.recommendedAction = recommendedAction;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("[%s] Service: %s | Severity: %s | Issue: %s | Action: %s",
+                Instant.now(), serviceId, severity, issueDescription, recommendedAction);
+    }
+}
+
+// 3. System Analyst Engine Core
+class RealTimeAnalystEngine {
+    private final BlockingQueue<SystemMetricEvent> eventStream = new LinkedBlockingQueue<>();
+    private final ExecutorService processingExecutor = Executors.newSingleThreadExecutor();
+    private volatile boolean running = true;
+
+    // SLA Constraints
+    private static final double CPU_CRITICAL_THRESHOLD = 85.0;
+    private static final double LATENCY_CRITICAL_THRESHOLD = 500.0; // ms
+
+    public void ingestMetric(SystemMetricEvent event) {
+        eventStream.offer(event);
+    }
+
+    public void start() {
+        processingExecutor.submit(() -> {
+            while (running) {
+                try {
+                    SystemMetricEvent event = eventStream.poll(100, TimeUnit.MILLISECONDS);
+                    if (event != null) {
+                        analyzeEvent(event);
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+        });
+    }
+
+    private void analyzeEvent(SystemMetricEvent event) {
+        // Rule 1: High CPU Bottleneck Detection
+        if (event.getCpuUsagePercent() > CPU_CRITICAL_THRESHOLD) {
+            AnalysisResult result = new AnalysisResult(
+                    event.getServiceId(),
+                    Severity.CRITICAL,
+                    "High CPU Usage: " + event.getCpuUsagePercent() + "%",
+                    "Trigger Auto-Scaling (Scale Out +2 Instances)"
+            );
+            handleMitigation(result);
+        }
+
+        // Rule 2: High Latency / Service Degradation
+        if (event.getLatencyMs() > LATENCY_CRITICAL_THRESHOLD) {
+            AnalysisResult result = new AnalysisResult(
+                    event.getServiceId(),
+                    Severity.WARNING,
+                    "High Latency: " + event.getLatencyMs() + " ms",
+                    "Enable Rate Limiting & Reroute Traffic"
+            );
+            handleMitigation(result);
+        }
+    }
+
+    private void handleMitigation(AnalysisResult result) {
+        // Output real-time recommendation / dispatch to webhook
+        System.out.println("🚨 ALERT DISPATCHED: " + result);
+    }
+
+    public void shutdown() {
+        this.running = false;
+        processingExecutor.shutdown();
+    }
+}
+
+// 4. Simulator / Driver Code
+public class Main {
+    public static void main(String[] args) throws InterruptedException {
+        RealTimeAnalystEngine engine = new RealTimeAnalystEngine();
+        engine.start();
+
+        System.out.println("Real-Time System Analyst Engine started. Stream active...\n");
+
+        // Simulating continuous streaming events from distributed servers
+        engine.ingestMetric(new SystemMetricEvent("AuthService", 42.0, 120.0, 0));
+        engine.ingestMetric(new SystemMetricEvent("PaymentGateway", 92.5, 340.0, 2)); // High CPU
+        engine.ingestMetric(new SystemMetricEvent("OrderService", 60.0, 680.0, 5));  // High Latency
+
+        Thread.sleep(1000);
+        engine.shutdown();
+    }
+}
